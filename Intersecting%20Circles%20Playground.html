@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intersecting Circles Playground</title>
+<style>
+    :root {
+        --bg-color: #0b0c10;
+        --panel-bg: #15171e;
+        --section-bg: #1c1f28;
+        --text-color: #f0f0f0;
+        --text-muted: #9ca3af;
+        --accent-color: #78b9bd;
+        --accent-hover: #91c8cb;
+        --border-color: #2d313d;
+        --input-bg: #252833;
+        --accent-soft: rgba(120, 185, 189, 0.12);
+    }
+
+    body, html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        display: flex;
+        flex-direction: row;
+    }
+
+    /* LEFT SIDE PANEL */
+    #controls {
+        width: 340px;
+        min-width: 340px;
+        background: var(--panel-bg);
+        border-right: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        box-shadow: 4px 0 20px rgba(0,0,0,0.4);
+        z-index: 10;
+        transition: margin-left 0.3s ease;
+    }
+
+    #controls.hidden {
+        margin-left: -340px;
+    }
+
+    .panel-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--border-color);
+        background: linear-gradient(135deg, #1a1c25 0%, #15171e 100%);
+    }
+
+    .panel-header h1 {
+        margin: 0;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #a5cdd0;
+        letter-spacing: 0.5px;
+    }
+
+    .panel-header p {
+        margin: 6px 0 0 0;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+
+    .panel-content {
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        flex: 1;
+    }
+
+    .section {
+        background: var(--section-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 16px;
+    }
+
+    .section-title {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        color: var(--text-muted);
+        margin: 0 0 12px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .control-row {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    label {
+        font-size: 0.85rem;
+        font-weight: 500;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #d1d5db;
+    }
+
+    label span.val {
+        font-family: monospace;
+        background: var(--input-bg);
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        color: var(--accent-color);
+    }
+
+    input[type="range"] {
+        width: 100%;
+        height: 6px;
+        -webkit-appearance: none;
+        appearance: none;
+        background: var(--input-bg);
+        border-radius: 3px;
+        outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--accent-color);
+        cursor: pointer;
+        box-shadow: 0 0 4px rgba(120, 185, 189, 0.22);
+        transition: transform 0.1s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+        transform: scale(1.2);
+    }
+
+    input[type="color"] {
+        width: 100%;
+        height: 36px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        background: var(--input-bg);
+        cursor: pointer;
+        padding: 2px;
+    }
+
+    select {
+        width: 100%;
+        padding: 10px;
+        background: var(--input-bg);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        outline: none;
+    }
+    
+    select:focus {
+        border-color: var(--accent-color);
+    }
+
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        padding: 6px 0;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--accent-color);
+        cursor: pointer;
+    }
+
+    .btn-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    button {
+        padding: 10px 16px;
+        background: var(--input-bg);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    button:hover {
+        border-color: #628f93;
+        background: #292d37;
+        color: white;
+    }
+
+    button.primary {
+        background: #527f83;
+        color: #f4f7f7;
+        font-weight: 600;
+        border: 1px solid #638e92;
+    }
+
+    button.primary:hover {
+        background: #628f93;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    }
+
+    button.danger {
+        background: #ef4444;
+        color: white;
+        border: none;
+    }
+    
+    button.danger:hover {
+        background: #f87171;
+    }
+
+    button.full-width {
+        grid-column: span 2;
+    }
+
+    .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .preset-grid button { padding: 9px 8px; }
+    .subtle-note { margin: 10px 0 0; color: var(--text-muted); font-size: 0.76rem; line-height: 1.45; }
+    #statusMessage { min-height: 1.1em; margin: 10px 0 0; color: #a5cdd0; font-size: 0.78rem; }
+    button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid #78b9bd; outline-offset: 2px; }
+
+    /* CANVAS AREA */
+    #canvas-container {
+        flex: 1;
+        position: relative;
+        overflow: hidden;
+    }
+
+    #canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+        cursor: crosshair;
+    }
+
+    /* FLOATING UI TOGGLE (When menu is hidden) */
+    #ui-toggle-btn {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: rgba(21, 23, 30, 0.94);
+        border: 1px solid var(--border-color);
+        backdrop-filter: blur(8px);
+        z-index: 20;
+        padding: 10px 14px;
+        display: none;
+    }
+
+    #controls.hidden ~ #canvas-container #ui-toggle-btn {
+        display: flex;
+    }
+
+    @media (max-width: 760px) {
+        body, html { overflow: hidden; }
+        #controls { width: min(88vw, 340px); min-width: 0; max-width: 340px; }
+        #controls.hidden { margin-left: calc(-1 * min(88vw, 340px)); }
+        .panel-header { padding: 16px 18px; }
+        .panel-content { padding: 12px; gap: 12px; }
+        .section { padding: 13px; }
+        #ui-toggle-btn { top: 12px; left: 12px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+        background: var(--panel-bg);
+    }
+    ::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #4b5563;
+    }
+</style>
+</head>
+<body>
+
+<!-- LEFT CONTROL PANEL -->
+<div id="controls">
+    <div class="panel-header">
+        <h1>⚪ Circles Playground</h1>
+        <p>Generate mesmerizing intersecting patterns</p>
+    </div>
+
+    <div class="panel-content">
+        <div class="section">
+            <h3 class="section-title">✦ Quick starts</h3>
+            <div class="preset-grid">
+                <button type="button" data-preset="classic">Classic Bloom</button>
+                <button type="button" data-preset="mandala">Soft Mandala</button>
+                <button type="button" data-preset="orbit">Orbit Lines</button>
+                <button type="button" data-preset="spiral">Spiral Study</button>
+            </div>
+            <p class="subtle-note">Choose a starting point, then adjust the controls below.</p>
+        </div>
+        <!-- GEOMETRY SECTION -->
+        <div class="section">
+            <h3 class="section-title">📐 Geometry</h3>
+            <div class="control-group">
+                <div class="control-row">
+                    <label>Number of Circles <span class="val" id="val-num">36</span></label>
+                    <input type="range" id="numCircles" min="2" max="300" value="36">
+                </div>
+                <div class="control-row">
+                    <label>Ring Radius <span class="val" id="val-ring">200</span></label>
+                    <input type="range" id="ringRadius" min="0" max="600" value="200">
+                </div>
+                <div class="control-row">
+                    <label>Circle Radius <span class="val" id="val-circ">50</span></label>
+                    <input type="range" id="circleRadius" min="5" max="250" value="50">
+                </div>
+                <div class="control-row">
+                    <label>Stroke Width <span class="val" id="val-stroke">2</span></label>
+                    <input type="range" id="strokeWidth" min="0" max="10" value="2" step="0.5">
+                </div>
+                <div class="control-row">
+                    <label>Pattern Style</label>
+                    <select id="pattern">
+                        <option value="ring">Ring (Equal Centers)</option>
+                        <option value="rotated">Rotated (Flower)</option>
+                        <option value="nested">Nested (Concentric)</option>
+                        <option value="spiro">Spiro-like (Spiral)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- APPEARANCE SECTION -->
+        <div class="section">
+            <h3 class="section-title">🎨 Appearance</h3>
+            <div class="control-group">
+                <div class="control-row">
+                    <label>Base Color</label>
+                    <input type="color" id="color" value="#78b9bd">
+                </div>
+                <div class="control-row">
+                    <label>Opacity <span class="val" id="val-alpha">0.8</span></label>
+                    <input type="range" id="alpha" min="0.05" max="1" value="0.8" step="0.05">
+                </div>
+                <label class="checkbox-group"><input type="checkbox" id="fill"> Fill Circles</label>
+                <label class="checkbox-group"><input type="checkbox" id="glow" checked> Neon Glow Effect</label>
+                <label class="checkbox-group"><input type="checkbox" id="hueShift"> Rainbow Hue Shift</label>
+            </div>
+        </div>
+
+        <!-- ANIMATION SECTION -->
+        <div class="section">
+            <h3 class="section-title">🔄 Animation</h3>
+            <div class="control-group">
+                <div class="control-row">
+                    <label>Spin Mode</label>
+                    <select id="spinMode">
+                        <option value="none">None (Static)</option>
+                        <option value="pattern">Pattern (Whole Ring)</option>
+                        <option value="individual">Individual (Self-Spin)</option>
+                        <option value="both" selected>Both</option>
+                    </select>
+                </div>
+                <div class="control-row">
+                    <label>Rotate Speed <span class="val" id="val-speed">0.01</span></label>
+                    <input type="range" id="rotateSpeed" min="-0.1" max="0.1" value="0.01" step="0.005">
+                </div>
+                <label class="checkbox-group"><input type="checkbox" id="trails" checked> Motion Trails</label>
+                <div class="control-row">
+                    <label>Trail Fade <span class="val" id="val-fade">0.08</span></label>
+                    <input type="range" id="trailFade" min="0.01" max="0.5" value="0.08" step="0.01">
+                </div>
+                <label class="checkbox-group"><input type="checkbox" id="autoAdd"> Auto-add Circles</label>
+            </div>
+        </div>
+
+        <!-- ACTIONS SECTION -->
+        <div class="section">
+            <h3 class="section-title">⚡ Actions</h3>
+            <div class="btn-grid">
+                <button id="btnPush">+ Random</button>
+                <button id="btnRandomize">✧ Randomize</button>
+                <button id="btnRedraw" class="primary">Regenerate</button>
+                <button id="btnSave">Save Design</button>
+                <button id="btnLoad">Load Saved</button>
+                <button id="btnReset">Reset Defaults</button>
+                <button id="btnToggleAnim">⏸ Pause</button>
+                <button id="btnClear" class="danger">Clear All</button>
+                <button id="btnExport" class="full-width">📷 Export PNG</button>
+                <button id="btnExportHD" class="full-width">⬇ Export Large PNG (2×)</button>
+                <button id="btnFullscreen" class="full-width">⛶ Enter Fullscreen</button>
+                <button id="btnHideUI" class="full-width">👁 Hide Menu</button>
+            </div>
+            <p id="statusMessage" role="status" aria-live="polite"></p>
+        </div>
+    </div>
+</div>
+
+<!-- CANVAS AREA -->
+<div id="canvas-container">
+    <button id="ui-toggle-btn">☰ Show Menu</button>
+    <canvas id="canvas"></canvas>
+</div>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const controlsPanel = document.getElementById('controls');
+
+    // State
+    let settings = {
+        numCircles: 36, ringRadius: 200, circleRadius: 50, strokeWidth: 2,
+        color: '#78b9bd', alpha: 0.8, fill: false, glow: true, hueShift: false,
+        pattern: 'ring', spinMode: 'both', rotateSpeed: 0.01,
+        trails: true, trailFade: 0.08, autoAdd: false
+    };
+
+    let circles = [];
+    let globalAngle = 0;
+    let isAnimating = true;
+    let hue = 0;
+
+    // Resize Canvas
+    function resize() {
+        const container = document.getElementById('canvas-container');
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = container.clientWidth * dpr;
+        canvas.height = container.clientHeight * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // Use setTransform to avoid scaling issues on multiple resizes
+    }
+    
+    window.addEventListener('resize', resize);
+    // Observe container size changes (e.g., when menu is hidden/shown)
+    new ResizeObserver(resize).observe(document.getElementById('canvas-container'));
+    resize();
+
+    // Generate Patterns
+    function generateCircles() {
+        circles = [];
+        const N = settings.numCircles;
+        const R = settings.ringRadius;
+        const r = settings.circleRadius;
+
+        for (let i = 0; i < N; i++) {
+            const t = i / N;
+            const angle = t * Math.PI * 2;
+            let x = 0, y = 0, radius = r, selfAngle = 0;
+
+            switch (settings.pattern) {
+                case 'ring':
+                    x = Math.cos(angle) * R;
+                    y = Math.sin(angle) * R;
+                    break;
+                case 'rotated':
+                    const offset = (i % 2 === 0 ? 1 : -1) * r * 0.5;
+                    x = Math.cos(angle) * (R + offset);
+                    y = Math.sin(angle) * (R + offset);
+                    selfAngle = angle;
+                    break;
+                case 'nested':
+                    radius = r + (300 - r) * t;
+                    break;
+                case 'spiro':
+                    const spiralAngle = t * Math.PI * 10;
+                    const dist = t * R;
+                    x = Math.cos(spiralAngle) * dist;
+                    y = Math.sin(spiralAngle) * dist;
+                    radius = r * (1 - t * 0.6);
+                    break;
+            }
+            circles.push({ x, y, radius, selfAngle, baseAngle: angle });
+        }
+    }
+
+    function pushRandomCircle() {
+        const angle = Math.random() * Math.PI * 2;
+        const dist = Math.random() * settings.ringRadius;
+        circles.push({
+            x: Math.cos(angle) * dist,
+            y: Math.sin(angle) * dist,
+            radius: settings.circleRadius * (0.5 + Math.random()),
+            selfAngle: Math.random() * Math.PI * 2,
+            baseAngle: angle
+        });
+        if (circles.length > 500) circles.shift();
+    }
+
+    // Draw Loop
+    function draw() {
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+        const cx = w / 2;
+        const cy = h / 2;
+
+        if (settings.trails) {
+            ctx.fillStyle = `rgba(11, 12, 16, ${settings.trailFade})`;
+            ctx.fillRect(0, 0, w, h);
+        } else {
+            ctx.clearRect(0, 0, w, h);
+            ctx.fillStyle = '#0b0c10';
+            ctx.fillRect(0, 0, w, h);
+        }
+
+        ctx.save();
+        ctx.translate(cx, cy);
+
+        if (settings.spinMode === 'pattern' || settings.spinMode === 'both') {
+            ctx.rotate(globalAngle);
+        }
+
+        if (settings.glow) ctx.shadowBlur = 15;
+
+        circles.forEach((c, i) => {
+            ctx.save();
+            ctx.translate(c.x, c.y);
+
+            if (settings.spinMode === 'individual' || settings.spinMode === 'both') {
+                ctx.rotate(c.selfAngle);
+            }
+
+            let currentColor = settings.color;
+            if (settings.hueShift) {
+                const h = (hue + i * (360 / Math.max(circles.length, 1))) % 360;
+                currentColor = `hsl(${h}, 100%, 60%)`;
+            }
+            
+            ctx.globalAlpha = settings.alpha;
+            ctx.strokeStyle = currentColor;
+            ctx.fillStyle = currentColor;
+            ctx.lineWidth = settings.strokeWidth;
+
+            if (settings.glow) ctx.shadowColor = currentColor;
+
+            ctx.beginPath();
+            ctx.arc(0, 0, c.radius, 0, Math.PI * 2);
+            
+            if (settings.fill) ctx.fill();
+            if (settings.strokeWidth > 0) ctx.stroke();
+
+            ctx.restore();
+        });
+
+        ctx.restore();
+    }
+
+    function update() {
+        globalAngle += settings.rotateSpeed;
+        hue = (hue + 1) % 360;
+        circles.forEach(c => c.selfAngle += settings.rotateSpeed * 1.5);
+
+        if (settings.autoAdd && Math.random() < 0.1) pushRandomCircle();
+    }
+
+    let animationFrame;
+    function animate() {
+        if (isAnimating && !document.hidden) update();
+        if (!document.hidden) draw();
+        animationFrame = requestAnimationFrame(animate);
+    }
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) draw();
+    });
+
+    // Presets, save/load, and lightweight status feedback
+    const statusMessage = document.getElementById('statusMessage');
+    let statusTimer;
+    function showStatus(message) {
+        statusMessage.textContent = message;
+        clearTimeout(statusTimer);
+        statusTimer = setTimeout(() => statusMessage.textContent = '', 2600);
+    }
+
+    const defaults = { ...settings };
+    const presets = {
+        classic: { numCircles: 36, ringRadius: 200, circleRadius: 50, strokeWidth: 2, color: '#78b9bd', alpha: 0.8, fill: false, glow: true, hueShift: false, pattern: 'ring', spinMode: 'both', rotateSpeed: 0.01, trails: true, trailFade: 0.08, autoAdd: false },
+        mandala: { numCircles: 72, ringRadius: 135, circleRadius: 88, strokeWidth: 1.5, color: '#c3a6ce', alpha: 0.62, fill: false, glow: false, hueShift: false, pattern: 'rotated', spinMode: 'pattern', rotateSpeed: 0.004, trails: false, trailFade: 0.08, autoAdd: false },
+        orbit: { numCircles: 24, ringRadius: 180, circleRadius: 70, strokeWidth: 1.5, color: '#9bb7a5', alpha: 0.7, fill: false, glow: false, hueShift: false, pattern: 'ring', spinMode: 'individual', rotateSpeed: 0.008, trails: false, trailFade: 0.08, autoAdd: false },
+        spiral: { numCircles: 110, ringRadius: 260, circleRadius: 62, strokeWidth: 1.5, color: '#d0b28b', alpha: 0.7, fill: false, glow: false, hueShift: false, pattern: 'spiro', spinMode: 'pattern', rotateSpeed: 0.006, trails: false, trailFade: 0.08, autoAdd: false }
+    };
+
+    function syncControlsFromSettings() {
+        const ids = { numCircles: 'numCircles', ringRadius: 'ringRadius', circleRadius: 'circleRadius', strokeWidth: 'strokeWidth', color: 'color', alpha: 'alpha', fill: 'fill', glow: 'glow', hueShift: 'hueShift', pattern: 'pattern', spinMode: 'spinMode', rotateSpeed: 'rotateSpeed', trails: 'trails', trailFade: 'trailFade', autoAdd: 'autoAdd' };
+        Object.entries(ids).forEach(([key, id]) => {
+            const el = document.getElementById(id);
+            if (el.type === 'checkbox') el.checked = !!settings[key];
+            else el.value = settings[key];
+        });
+        const valueMap = { numCircles: 'val-num', ringRadius: 'val-ring', circleRadius: 'val-circ', strokeWidth: 'val-stroke', alpha: 'val-alpha', rotateSpeed: 'val-speed', trailFade: 'val-fade' };
+        Object.entries(valueMap).forEach(([key, id]) => document.getElementById(id).textContent = settings[key]);
+        generateCircles();
+    }
+
+    function applyPreset(name) {
+        settings = { ...settings, ...presets[name] };
+        syncControlsFromSettings();
+        showStatus('Preset applied: ' + ({classic:'Classic Bloom', mandala:'Soft Mandala', orbit:'Orbit Lines', spiral:'Spiral Study'}[name] || name));
+    }
+    document.querySelectorAll('[data-preset]').forEach(button => button.addEventListener('click', () => applyPreset(button.dataset.preset)));
+
+    document.getElementById('btnRandomize').addEventListener('click', () => {
+        const colors = ['#78b9bd', '#b9a2ca', '#d0b28b', '#9bb7a5', '#c58f9c', '#a9b7d0'];
+        settings.numCircles = 12 + Math.floor(Math.random() * 85);
+        settings.ringRadius = 60 + Math.floor(Math.random() * 260);
+        settings.circleRadius = 20 + Math.floor(Math.random() * 100);
+        settings.strokeWidth = [1, 1.5, 2, 2.5, 3][Math.floor(Math.random() * 5)];
+        settings.color = colors[Math.floor(Math.random() * colors.length)];
+        settings.alpha = [0.45, 0.6, 0.7, 0.8][Math.floor(Math.random() * 4)];
+        settings.pattern = ['ring', 'rotated', 'nested', 'spiro'][Math.floor(Math.random() * 4)];
+        settings.glow = Math.random() > 0.65;
+        settings.hueShift = false;
+        settings.trails = Math.random() > 0.5;
+        syncControlsFromSettings();
+        showStatus('A new design is ready.');
+    });
+
+    document.getElementById('btnSave').addEventListener('click', () => {
+        try {
+            localStorage.setItem('circlesPlaygroundSettings', JSON.stringify(settings));
+            showStatus('Design saved in this browser.');
+        } catch (error) { showStatus('Could not save in this browser.'); }
+    });
+    document.getElementById('btnLoad').addEventListener('click', () => {
+        try {
+            const saved = localStorage.getItem('circlesPlaygroundSettings');
+            if (!saved) return showStatus('No saved design found on this browser yet.');
+            const parsed = JSON.parse(saved);
+            settings = { ...defaults, ...parsed };
+            syncControlsFromSettings();
+            showStatus('Saved design loaded.');
+        } catch (error) { showStatus('Could not load the saved design.'); }
+    });
+    document.getElementById('btnReset').addEventListener('click', () => {
+        settings = { ...defaults };
+        syncControlsFromSettings();
+        showStatus('Settings reset to defaults.');
+    });
+
+    function exportPNG(scale) {
+        const out = document.createElement('canvas');
+        out.width = Math.round(canvas.clientWidth * scale);
+        out.height = Math.round(canvas.clientHeight * scale);
+        const outCtx = out.getContext('2d');
+        outCtx.fillStyle = '#0b0c10';
+        outCtx.fillRect(0, 0, out.width, out.height);
+        outCtx.drawImage(canvas, 0, 0, out.width, out.height);
+        const link = document.createElement('a');
+        link.download = scale > 1 ? 'circles-playground-large.png' : 'circles-playground.png';
+        link.href = out.toDataURL('image/png');
+        link.click();
+        showStatus(scale > 1 ? 'Large PNG exported (upscaled 2×).' : 'PNG exported.');
+    }
+
+    // UI Bindings
+    function bindSlider(id, key, valId, isFloat = false) {
+        const el = document.getElementById(id);
+        const valEl = document.getElementById(valId);
+        el.addEventListener('input', () => {
+            settings[key] = isFloat ? parseFloat(el.value) : parseInt(el.value);
+            if(valEl) valEl.textContent = el.value;
+            if (['numCircles', 'pattern', 'ringRadius', 'circleRadius'].includes(key)) generateCircles();
+        });
+    }
+
+    bindSlider('numCircles', 'numCircles', 'val-num');
+    bindSlider('ringRadius', 'ringRadius', 'val-ring');
+    bindSlider('circleRadius', 'circleRadius', 'val-circ');
+    bindSlider('strokeWidth', 'strokeWidth', 'val-stroke', true);
+    bindSlider('alpha', 'alpha', 'val-alpha', true);
+    bindSlider('rotateSpeed', 'rotateSpeed', 'val-speed', true);
+    bindSlider('trailFade', 'trailFade', 'val-fade', true);
+
+    document.getElementById('color').addEventListener('input', e => settings.color = e.target.value);
+    document.getElementById('fill').addEventListener('change', e => settings.fill = e.target.checked);
+    document.getElementById('glow').addEventListener('change', e => settings.glow = e.target.checked);
+    document.getElementById('hueShift').addEventListener('change', e => settings.hueShift = e.target.checked);
+    document.getElementById('trails').addEventListener('change', e => settings.trails = e.target.checked);
+    document.getElementById('autoAdd').addEventListener('change', e => settings.autoAdd = e.target.checked);
+    
+    document.getElementById('pattern').addEventListener('change', e => {
+        settings.pattern = e.target.value;
+        generateCircles();
+    });
+    
+    document.getElementById('spinMode').addEventListener('change', e => settings.spinMode = e.target.value);
+
+    // Buttons
+    document.getElementById('btnPush').addEventListener('click', pushRandomCircle);
+    document.getElementById('btnRedraw').addEventListener('click', generateCircles);
+    
+    document.getElementById('btnToggleAnim').addEventListener('click', function() {
+        isAnimating = !isAnimating;
+        this.innerHTML = isAnimating ? '⏸ Pause' : '▶ Play';
+    });
+
+    document.getElementById('btnClear').addEventListener('click', () => {
+        circles = [];
+        ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+    });
+
+    document.getElementById('btnExport').addEventListener('click', () => exportPNG(1));
+    document.getElementById('btnExportHD').addEventListener('click', () => exportPNG(2));
+
+    // Fullscreen & UI Toggle Logic
+    document.getElementById('btnFullscreen').addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => console.log(err));
+        } else {
+            document.exitFullscreen();
+        }
+    });
+
+    document.getElementById('btnHideUI').addEventListener('click', () => {
+        controlsPanel.classList.add('hidden');
+        setTimeout(resize, 350); // Wait for CSS transition to finish
+    });
+
+    document.getElementById('ui-toggle-btn').addEventListener('click', () => {
+        controlsPanel.classList.remove('hidden');
+        setTimeout(resize, 350);
+    });
+
+    // Update fullscreen button text on change
+    document.addEventListener('fullscreenchange', () => {
+        const btn = document.getElementById('btnFullscreen');
+        btn.innerHTML = document.fullscreenElement ? '⛶ Exit Fullscreen' : '⛶ Enter Fullscreen';
+    });
+
+    // Initialize
+    generateCircles();
+    animate();
+</script>
+</body>
+</html>
